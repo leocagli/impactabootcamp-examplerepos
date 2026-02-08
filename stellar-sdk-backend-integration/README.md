@@ -274,7 +274,7 @@ Genera un XDR sin firmar para desplegar un contrato de escrow/milestone.
 }
 ```
 
-**⚠️ CRÍTICO**: Las wallets `GB6MP3L6UGIDY6O6MXNLSKHLXT2T2TCMPZIZGUTOGYKOLHW7EORWMFCK` en `approver` y `disputeResolver` NO deben modificarse.
+**⚠️ CRÍTICO**: Las wallets `GB6MP3L6UGIDY6O6MXNLSKHLXT2T2TCMPZIZGUTOGYKOLHW7EORWMFCK` en `approver` y `disputeResolver` NO deben modificarse. Estas direcciones son parte de la configuración del contrato y son necesarias para el correcto funcionamiento del sistema de aprobación y resolución de disputas.
 
 **Respuesta (200):**
 ```json
@@ -475,7 +475,7 @@ Usa Postman o cURL para enviar una petición POST a `/deployer/single-release` c
 }
 ```
 
-⚠️ **IMPORTANTE**: NO modifiques las direcciones de `approver` y `disputeResolver`.
+⚠️ **IMPORTANTE**: NO modifiques las direcciones de `approver` y `disputeResolver`. Estas son direcciones oficiales del bootcamp requeridas para la correcta validación de tu tarea.
 
 El endpoint te retornará un XDR (transacción sin firmar).
 

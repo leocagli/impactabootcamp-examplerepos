@@ -88,6 +88,8 @@ Servidor **Node.js** con **Express** que expone una API REST para interactuar co
 | `GET` | `/products/:id` | Obtener producto por ID |
 | `PUT` | `/products/:id/stock` | Actualizar stock |
 | `PUT` | `/products/:id/price` | Actualizar precio |
+| `POST` | `/deployer/single-release` | Generar XDR para desplegar contrato |
+| `POST` | `/deployer/submit` | Enviar XDR firmado a la red |
 | `GET` | `/health` | Estado del servidor |
 
 #### Tecnologías
@@ -163,6 +165,23 @@ Cada componente tiene su propio README con instrucciones detalladas:
 
 - **Contrato:** [`soroban-contract/README.md`](./soroban-contract/README.md)
 - **Backend:** [`stellar-sdk-backend-integration/README.md`](./stellar-sdk-backend-integration/README.md)
+
+## Tarea del Bootcamp: Despliegue de Contratos
+
+Para completar la tarea del bootcamp, consulta la [Guía completa del Bootcamp](./stellar-sdk-backend-integration/README.md#guía-completa-del-bootcamp-despliegue-de-contratos) en la documentación del backend.
+
+### Resumen de pasos:
+
+1. **Configurar wallet con USDC** en Stellar testnet
+2. **Importar colección de Postman** (`Impacta-Bootcamp-Stellar.postman_collection.json`)
+3. **Iniciar el servidor** del backend
+4. **Llamar al endpoint** `/deployer/single-release` con tus datos
+5. **Firmar el XDR** en Stellar Laboratory
+6. **Enviar el XDR firmado** al endpoint `/deployer/submit`
+7. **Verificar en Stellar Expert** usando el transaction hash
+
+**Entrega:** Link a tu transacción en Stellar Expert  
+**Fecha límite:** Domingo
 
 ## Licencia
 

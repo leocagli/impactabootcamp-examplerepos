@@ -31,10 +31,19 @@ router.post("/single-release", async (req, res) => {
         } = req.body;
 
         // Validate required fields
-        if (!signer || !engagementId || !title || !description || !roles || 
-            amount === undefined || platformFee === undefined || !milestones || !trustline) {
+        const requiredFields = {
+            signer, engagementId, title, description, roles, 
+            amount, platformFee, milestones, trustline
+        };
+        
+        const missingFields = Object.keys(requiredFields).filter(
+            key => requiredFields[key] === undefined || requiredFields[key] === null
+        );
+        
+        if (missingFields.length > 0) {
             return res.status(400).json({
                 error: "Missing required fields",
+                missingFields: missingFields,
                 required: [
                     "signer", "engagementId", "title", "description", 
                     "roles", "amount", "platformFee", "milestones", "trustline"
@@ -79,12 +88,16 @@ router.post("/single-release", async (req, res) => {
 
         // Build transaction with payment operation as a placeholder
         // In a real implementation, this would deploy a smart contract
+        
+        // Create memo text (max 28 bytes for Stellar memo)
+        const memoText = `${engagementId}:${title}`.substring(0, 27);
+        
         const transaction = new TransactionBuilder(sourceAccount, {
             fee: BASE_FEE,
             networkPassphrase: NETWORK_PASSPHRASE,
         })
             // Add memo with engagement details
-            .addMemo(Memo.text(`${engagementId}:${title.substring(0, 20)}`))
+            .addMemo(Memo.text(memoText))
             // Placeholder operation - in real implementation would be contract deployment
             .addOperation(
                 Operation.payment({
