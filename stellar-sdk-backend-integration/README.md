@@ -12,6 +12,7 @@ Este proyecto es una API REST que actua como intermediario entre aplicaciones cl
 - **Consultar productos**: Obtener información de un producto por su ID
 - **Actualizar stock**: Incrementar o decrementar el inventario de un producto
 - **Actualizar precio**: Modificar el precio de un producto existente
+- **Desplegar contratos**: Generar y enviar XDRs para desplegar contratos de escrow/milestone con USDC
 
 ## Tecnologias
 
@@ -25,16 +26,18 @@ Este proyecto es una API REST que actua como intermediario entre aplicaciones cl
 ```
 stellar-sdk-backend-integration/
 ├── package.json
-├── .env.example          # Template de variables de entorno
-├── .env                  # Variables de entorno (no commitear)
+├── .env.example                                # Template de variables de entorno
+├── .env                                         # Variables de entorno (no commitear)
+├── Impacta-Bootcamp-Stellar.postman_collection.json  # Colección de Postman
 └── src/
-    ├── index.js          # Punto de entrada del servidor Express
+    ├── index.js                                # Punto de entrada del servidor Express
     ├── config/
-    │   └── stellar.js    # Configuracion del cliente Stellar/Soroban
+    │   └── stellar.js                          # Configuracion del cliente Stellar/Soroban
     ├── routes/
-    │   └── products.js   # Endpoints de la API de productos
+    │   ├── products.js                         # Endpoints de la API de productos
+    │   └── deployer.js                         # Endpoints para desplegar contratos
     └── types/
-        └── product.js    # Utilidades de formateo de productos
+        └── product.js                          # Utilidades de formateo de productos
 ```
 
 ## Requisitos previos
@@ -43,6 +46,22 @@ stellar-sdk-backend-integration/
 - npm o yarn
 - Una cuenta de Stellar con fondos en testnet
 - Un contrato Soroban desplegado (ver proyecto `soroban-contract`)
+- (Opcional) Postman para probar los endpoints más fácilmente
+
+## Configurar Postman (Opcional)
+
+1. Abrir Postman
+2. Importar la colección: `File → Import → Seleccionar Impacta-Bootcamp-Stellar.postman_collection.json`
+3. Configurar las variables de entorno:
+   - `base_url`: `http://localhost:3000`
+   - `signer`: Tu clave pública de Stellar
+   - `serviceProvider`: Dirección del proveedor de servicio
+   - `platformAddress`: Dirección de la plataforma
+   - `releaseSigner`: Dirección del firmante de liberación
+   - `receiver`: Dirección del receptor
+4. Guardar las variables
+
+Ahora puedes usar las requests pre-configuradas en la colección.
 
 ## Instalacion
 
@@ -219,6 +238,94 @@ Modifica el precio de un producto.
 }
 ```
 
+---
+
+### Generar XDR para desplegar contrato (Bootcamp)
+```
+POST /deployer/single-release
+```
+Genera un XDR sin firmar para desplegar un contrato de escrow/milestone.
+
+**Body (JSON):**
+```json
+{
+  "signer": "{{signer}}",
+  "engagementId": "Impacta-Bootcamp",
+  "title": "Nombre: [Tu nombre aquí]",
+  "description": "Descripcion personal: [Tu descripción]",
+  "roles": {
+    "approver": "GB6MP3L6UGIDY6O6MXNLSKHLXT2T2TCMPZIZGUTOGYKOLHW7EORWMFCK",
+    "serviceProvider": "{{serviceProvider}}",
+    "platformAddress": "{{platformAddress}}",
+    "releaseSigner": "{{releaseSigner}}",
+    "disputeResolver": "GB6MP3L6UGIDY6O6MXNLSKHLXT2T2TCMPZIZGUTOGYKOLHW7EORWMFCK",
+    "receiver": "{{receiver}}"
+  },
+  "amount": 10,
+  "platformFee": 1,
+  "milestones": [ 
+    { "description": "Meta 1" },
+    { "description": "Meta 2" }
+  ],
+  "trustline": {
+    "symbol": "USDC",
+    "address": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+  }
+}
+```
+
+**⚠️ CRÍTICO**: Las wallets `GB6MP3L6UGIDY6O6MXNLSKHLXT2T2TCMPZIZGUTOGYKOLHW7EORWMFCK` en `approver` y `disputeResolver` NO deben modificarse. Estas direcciones son parte de la configuración del contrato y son necesarias para el correcto funcionamiento del sistema de aprobación y resolución de disputas.
+
+**Respuesta (200):**
+```json
+{
+  "success": true,
+  "xdr": "AAAAAgAAAAC...(XDR string)...==",
+  "message": "Unsigned XDR generated successfully. Please sign it using Stellar Laboratory.",
+  "details": {
+    "engagementId": "Impacta-Bootcamp",
+    "title": "Nombre: John Doe",
+    "amount": 10,
+    "platformFee": 1,
+    "milestonesCount": 2,
+    "network": "testnet",
+    "requiresSignature": "G..."
+  }
+}
+```
+
+**Siguiente paso:** Ir a [Stellar Laboratory](https://laboratory.stellar.org/#txsigner?network=test), pegar el XDR y firmar con tu clave privada.
+
+---
+
+### Enviar XDR firmado
+```
+POST /deployer/submit
+```
+Envía el XDR firmado a la red Stellar.
+
+**Body (JSON):**
+```json
+{
+  "signedXdr": "AAAAAgAAAAC...(XDR firmado)...=="
+}
+```
+
+**Respuesta (200):**
+```json
+{
+  "success": true,
+  "transactionHash": "abc123...",
+  "status": "SUCCESS",
+  "message": "Transaction submitted successfully! Verify on Stellar Expert.",
+  "stellarExpertUrl": "https://stellar.expert/explorer/testnet/tx/abc123..."
+}
+```
+
+**Verificación:** Usa el link de Stellar Expert para verificar que el contrato se desplegó correctamente.
+
+---
+
 ## Ejemplos con cURL
 
 ```bash
@@ -242,6 +349,39 @@ curl -X PUT http://localhost:3000/products/1/stock \
 curl -X PUT http://localhost:3000/products/1/price \
   -H "Content-Type: application/json" \
   -d '{"new_price":1299}'
+
+# Generar XDR para desplegar contrato
+curl -X POST http://localhost:3000/deployer/single-release \
+  -H "Content-Type: application/json" \
+  -d '{
+    "signer": "TU_CLAVE_PUBLICA",
+    "engagementId": "Impacta-Bootcamp",
+    "title": "Nombre: Juan Perez",
+    "description": "Descripcion personal: Desarrollador Stellar",
+    "roles": {
+      "approver": "GB6MP3L6UGIDY6O6MXNLSKHLXT2T2TCMPZIZGUTOGYKOLHW7EORWMFCK",
+      "serviceProvider": "TU_SERVICE_PROVIDER",
+      "platformAddress": "TU_PLATFORM_ADDRESS",
+      "releaseSigner": "TU_RELEASE_SIGNER",
+      "disputeResolver": "GB6MP3L6UGIDY6O6MXNLSKHLXT2T2TCMPZIZGUTOGYKOLHW7EORWMFCK",
+      "receiver": "TU_RECEIVER"
+    },
+    "amount": 10,
+    "platformFee": 1,
+    "milestones": [
+      { "description": "Meta 1" },
+      { "description": "Meta 2" }
+    ],
+    "trustline": {
+      "symbol": "USDC",
+      "address": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    }
+  }'
+
+# Enviar XDR firmado
+curl -X POST http://localhost:3000/deployer/submit \
+  -H "Content-Type: application/json" \
+  -d '{"signedXdr":"TU_XDR_FIRMADO_AQUI"}'
 ```
 
 ## Como funciona la integracion con Stellar
@@ -262,3 +402,113 @@ curl -X PUT http://localhost:3000/products/1/price \
 ## Proyecto relacionado
 
 Este backend esta disenado para trabajar con el contrato inteligente ubicado en `../soroban-contract/`. Consulta su README para instrucciones de despliegue del contrato.
+
+---
+
+## Guía completa del Bootcamp: Despliegue de Contratos
+
+### Paso 1: Configurar tu wallet con USDC en Stellar Testnet
+
+1. **Crear o usar tu wallet de Stellar testnet**:
+   - Ve a [Stellar Laboratory](https://laboratory.stellar.org/#account-creator?network=test)
+   - Genera un nuevo keypair o usa uno existente
+   - Guarda tu clave pública (G...) y clave secreta (S...)
+
+2. **Añadir una trustline para USDC**:
+   - Ve a [Stellar Laboratory - Build Transaction](https://laboratory.stellar.org/#txbuilder?network=test)
+   - Ingresa tu cuenta fuente
+   - Selecciona "Change Trust"
+   - Asset Code: `USDC`
+   - Issuer: `GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5`
+   - Firma y envía la transacción
+
+3. **Solicitar USDC de testnet**:
+   - Ve al [Stellar USDC Faucet](https://faucet.stellar.org/)
+   - O envía un payment manual desde una cuenta con USDC
+
+### Paso 2: Configurar Postman
+
+1. Importa la colección `Impacta-Bootcamp-Stellar.postman_collection.json`
+2. Configura las variables de entorno:
+   - `signer`: Tu clave pública (G...)
+   - `serviceProvider`: Tu dirección o la de otro participante
+   - `platformAddress`: Dirección de la plataforma
+   - `releaseSigner`: Dirección del firmante
+   - `receiver`: Dirección que recibirá los fondos
+
+### Paso 3: Iniciar el servidor
+
+```bash
+npm run dev
+```
+
+El servidor estará disponible en `http://localhost:3000`
+
+### Paso 4: Llamar al endpoint deployer/single-release
+
+Usa Postman o cURL para enviar una petición POST a `/deployer/single-release` con tus datos personales:
+
+```json
+{
+  "signer": "{{signer}}",
+  "engagementId": "Impacta-Bootcamp",
+  "title": "Nombre: Juan Pérez",
+  "description": "Descripcion personal: Desarrollador blockchain",
+  "roles": {
+    "approver": "GB6MP3L6UGIDY6O6MXNLSKHLXT2T2TCMPZIZGUTOGYKOLHW7EORWMFCK",
+    "serviceProvider": "{{serviceProvider}}",
+    "platformAddress": "{{platformAddress}}",
+    "releaseSigner": "{{releaseSigner}}",
+    "disputeResolver": "GB6MP3L6UGIDY6O6MXNLSKHLXT2T2TCMPZIZGUTOGYKOLHW7EORWMFCK",
+    "receiver": "{{receiver}}"
+  },
+  "amount": 10,
+  "platformFee": 1,
+  "milestones": [
+    { "description": "Meta 1" },
+    { "description": "Meta 2" }
+  ],
+  "trustline": {
+    "symbol": "USDC",
+    "address": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+  }
+}
+```
+
+⚠️ **IMPORTANTE**: NO modifiques las direcciones de `approver` y `disputeResolver`. Estas son direcciones oficiales del bootcamp requeridas para la correcta validación de tu tarea.
+
+El endpoint te retornará un XDR (transacción sin firmar).
+
+### Paso 5: Firmar el XDR en Stellar Laboratory
+
+1. Ve a [Stellar Laboratory - Transaction Signer](https://laboratory.stellar.org/#txsigner?network=test)
+2. Pega el XDR recibido en el campo "Import a Transaction Envelope in XDR format"
+3. Click en "Sign in Transaction Signer"
+4. Ingresa tu clave secreta (S...)
+5. Click en "Submit in Transaction Submitter"
+6. Copia el XDR firmado
+
+### Paso 6: Enviar el XDR firmado
+
+Llama al endpoint `/deployer/submit` con el XDR firmado:
+
+```json
+{
+  "signedXdr": "AAAAAgAAAAC... (tu XDR firmado)"
+}
+```
+
+Guarda el transaction hash que recibes como respuesta.
+
+### Paso 7: Verificar en Stellar Expert
+
+1. Ve a [Stellar Expert Testnet](https://stellar.expert/explorer/testnet)
+2. Busca tu transaction hash en el buscador
+3. Verifica que la transacción se completó exitosamente
+4. Copia el link de la transacción como entrega
+
+### Entrega
+
+- Link a tu transacción en Stellar Expert
+- Formato: `https://stellar.expert/explorer/testnet/tx/[TRANSACTION_HASH]`
+- Fecha límite: Domingo
