@@ -39,6 +39,15 @@ ImpactaBootcamp-ExampleRepos/
 │   ├── .env.example                     # Template de configuración
 │   └── README.md                        # Documentación del backend
 │
+├── stellar-deployment-automation/       # Automatización de deployment (Python)
+│   ├── main.py                         # Script modular principal
+│   ├── deploy_automation.py            # Script unificado
+│   ├── config.py                       # Módulo de configuración
+│   ├── stellar_utils.py                # Utilidades de Stellar
+│   ├── requirements.txt                # Dependencias Python
+│   ├── .env.example                    # Template de configuración
+│   └── README.md                       # Documentación de automatización
+│
 └── README.md                            # Este archivo
 ```
 
@@ -96,6 +105,32 @@ Servidor **Node.js** con **Express** que expone una API REST para interactuar co
 - **Framework:** Express 5.x
 - **SDK:** @stellar/stellar-sdk v14
 - **Configuración:** dotenv
+
+### 3. Automatización de Deployment (`stellar-deployment-automation/`)
+
+Script de **Python** que automatiza el flujo completo de deployment en Stellar Testnet, minimizando los pasos manuales.
+
+#### Características Principales
+
+- 🔒 **Seguridad**: Manejo seguro de claves privadas con dotenv
+- ⚡ **Automatización**: Reduce pasos manuales al mínimo
+- 📦 **Modular**: Arquitectura extensible para futuras mejoras
+- 🔍 **Validación**: Verificación automática en Stellar Expert
+
+#### Flujo de Trabajo Automatizado
+
+1. Carga automática de configuración desde archivo `.env`
+2. POST al endpoint `deployer/single-release` con parámetros configurados
+3. Firma segura del XDR recibido usando Stellar SDK
+4. Envío del XDR firmado y procesamiento del transaction hash
+5. Validación opcional en Stellar Expert
+
+#### Tecnologías
+
+- **Lenguaje:** Python 3.8+
+- **SDK:** stellar-sdk (Python)
+- **HTTP Client:** requests
+- **Configuración:** python-dotenv
 
 ## Arquitectura
 
@@ -155,6 +190,8 @@ Contrato →  u64                 (Rust unsigned 64-bit)
 | Backend Runtime | Node.js | v18+ |
 | Backend Framework | Express | v5.2.1 |
 | Blockchain SDK | @stellar/stellar-sdk | v14.0.0 |
+| Deployment Automation | Python | 3.8+ |
+| Python Stellar SDK | stellar-sdk | v11.0.0+ |
 | Red Blockchain | Stellar Testnet | - |
 
 ## Documentación Adicional
@@ -163,6 +200,7 @@ Cada componente tiene su propio README con instrucciones detalladas:
 
 - **Contrato:** [`soroban-contract/README.md`](./soroban-contract/README.md)
 - **Backend:** [`stellar-sdk-backend-integration/README.md`](./stellar-sdk-backend-integration/README.md)
+- **Automatización:** [`stellar-deployment-automation/README.md`](./stellar-deployment-automation/README.md)
 
 ## Licencia
 

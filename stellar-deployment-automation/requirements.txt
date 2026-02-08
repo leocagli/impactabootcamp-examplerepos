@@ -1,0 +1,8 @@
+# Stellar SDK for Python
+stellar-sdk>=11.0.0
+
+# HTTP client library
+requests>=2.31.0
+
+# Environment variable management
+python-dotenv>=1.0.0
