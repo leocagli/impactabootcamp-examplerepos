@@ -6,6 +6,7 @@ import {
     Operation,
     Asset,
     BASE_FEE,
+    Memo,
     rpc,
 } from "@stellar/stellar-sdk";
 
@@ -83,10 +84,7 @@ router.post("/single-release", async (req, res) => {
             networkPassphrase: NETWORK_PASSPHRASE,
         })
             // Add memo with engagement details
-            .addMemo({
-                type: "text",
-                value: `${engagementId}:${title.substring(0, 20)}`
-            })
+            .addMemo(Memo.text(`${engagementId}:${title.substring(0, 20)}`))
             // Placeholder operation - in real implementation would be contract deployment
             .addOperation(
                 Operation.payment({
@@ -117,9 +115,23 @@ router.post("/single-release", async (req, res) => {
         });
     } catch (error) {
         console.error("Error generating XDR:", error);
+        
+        // Provide more specific error messages
+        let errorMessage = error.message;
+        let errorDetails = "Failed to generate unsigned XDR transaction";
+        
+        if (error.message.includes("ENOTFOUND") || error.message.includes("getaddrinfo")) {
+            errorMessage = "Network error: Unable to connect to Stellar RPC server";
+            errorDetails = "Please check your internet connection and RPC_URL configuration";
+        } else if (error.message.includes("invalid encoded string")) {
+            errorMessage = "Invalid Stellar public key format";
+            errorDetails = "Please ensure all addresses are valid Stellar public keys (starting with G)";
+        }
+        
         res.status(500).json({ 
-            error: error.message,
-            details: "Failed to generate unsigned XDR transaction"
+            error: errorMessage,
+            details: errorDetails,
+            originalError: error.message
         });
     }
 });
@@ -183,9 +195,20 @@ router.post("/submit", async (req, res) => {
         });
     } catch (error) {
         console.error("Error submitting XDR:", error);
+        
+        // Provide more specific error messages
+        let errorMessage = error.message;
+        let errorDetails = "Failed to submit signed XDR transaction";
+        
+        if (error.message.includes("ENOTFOUND") || error.message.includes("getaddrinfo")) {
+            errorMessage = "Network error: Unable to connect to Stellar RPC server";
+            errorDetails = "Please check your internet connection and RPC_URL configuration";
+        }
+        
         res.status(500).json({ 
-            error: error.message,
-            details: "Failed to submit signed XDR transaction"
+            error: errorMessage,
+            details: errorDetails,
+            originalError: error.message
         });
     }
 });
