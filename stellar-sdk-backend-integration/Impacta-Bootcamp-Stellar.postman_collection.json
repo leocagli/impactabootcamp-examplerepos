@@ -1,0 +1,172 @@
+{
+  "info": {
+    "name": "Impacta Bootcamp - Stellar API",
+    "description": "Colección de endpoints para el bootcamp de Impacta - Stellar Soroban",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "signer",
+      "value": "YOUR_STELLAR_PUBLIC_KEY_HERE",
+      "type": "string"
+    },
+    {
+      "key": "serviceProvider",
+      "value": "YOUR_SERVICE_PROVIDER_ADDRESS",
+      "type": "string"
+    },
+    {
+      "key": "platformAddress",
+      "value": "YOUR_PLATFORM_ADDRESS",
+      "type": "string"
+    },
+    {
+      "key": "releaseSigner",
+      "value": "YOUR_RELEASE_SIGNER_ADDRESS",
+      "type": "string"
+    },
+    {
+      "key": "receiver",
+      "value": "YOUR_RECEIVER_ADDRESS",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        }
+      }
+    },
+    {
+      "name": "Deployer - Single Release",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"signer\": \"{{signer}}\",\n  \"engagementId\": \"Impacta-Bootcamp\",\n  \"title\": \"Nombre: [Tu nombre aquí]\",\n  \"description\": \"Descripcion personal: [Tu descripción]\",\n  \"roles\": {\n    \"approver\": \"GB6MP3L6UGIDY6O6MXNLSKHLXT2T2TCMPZIZGUTOGYKOLHW7EORWMFCK\",\n    \"serviceProvider\": \"{{serviceProvider}}\",\n    \"platformAddress\": \"{{platformAddress}}\",\n    \"releaseSigner\": \"{{releaseSigner}}\",\n    \"disputeResolver\": \"GB6MP3L6UGIDY6O6MXNLSKHLXT2T2TCMPZIZGUTOGYKOLHW7EORWMFCK\",\n    \"receiver\": \"{{receiver}}\"\n  },\n  \"amount\": 10,\n  \"platformFee\": 1,\n  \"milestones\": [\n    { \"description\": \"Meta 1\" },\n    { \"description\": \"Meta 2\" }\n  ],\n  \"trustline\": {\n    \"symbol\": \"USDC\",\n    \"address\": \"GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/deployer/single-release",
+          "host": ["{{base_url}}"],
+          "path": ["deployer", "single-release"]
+        },
+        "description": "Genera un XDR sin firmar para desplegar un contrato de escrow/milestone. El XDR debe ser firmado en Stellar Laboratory antes de enviarlo."
+      }
+    },
+    {
+      "name": "Deployer - Submit Signed XDR",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"signedXdr\": \"PASTE_YOUR_SIGNED_XDR_HERE\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/deployer/submit",
+          "host": ["{{base_url}}"],
+          "path": ["deployer", "submit"]
+        },
+        "description": "Envía el XDR firmado a la red Stellar. Retorna el transaction hash para verificar en Stellar Expert."
+      }
+    },
+    {
+      "name": "Products - Register",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Laptop\",\n  \"description\": \"Laptop gaming 16GB RAM\",\n  \"price\": 1500,\n  \"initial_stock\": 10\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/products",
+          "host": ["{{base_url}}"],
+          "path": ["products"]
+        }
+      }
+    },
+    {
+      "name": "Products - Get by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/products/1",
+          "host": ["{{base_url}}"],
+          "path": ["products", "1"]
+        }
+      }
+    },
+    {
+      "name": "Products - Update Stock",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"quantity\": 5,\n  \"operation\": \"add\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/products/1/stock",
+          "host": ["{{base_url}}"],
+          "path": ["products", "1", "stock"]
+        }
+      }
+    },
+    {
+      "name": "Products - Update Price",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"new_price\": 1299\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/products/1/price",
+          "host": ["{{base_url}}"],
+          "path": ["products", "1", "price"]
+        }
+      }
+    }
+  ]
+}
